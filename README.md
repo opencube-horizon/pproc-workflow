@@ -3,7 +3,10 @@
 ## Dependencies 
 
 Running the benchmark requires the installation of the packages in https://git.ecmwf.int/projects/ECSDK/repos/pproc-bundle, and mir-python https://git.ecmwf.int/projects/MIR/repos/mir-python, which requires cython. The remaining Python dependencies are specified in the requirements.txt file.
-
+It might also be necessary to add the path to the virtual environment lib directory to $LD_LIBRARY_PATH.
+```
+export LD_LIBRARY_PATH=/path/to/virtualenv/libs:$LD_LIBRARY_PATH
+```
 
 ## FDB
 

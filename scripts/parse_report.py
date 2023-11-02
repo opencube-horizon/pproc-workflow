@@ -24,16 +24,8 @@ def find_key_values(key, dic):
     return None
 
 
-def main(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        help="Directory containing performance report and logs",
-    )
-    arg = parser.parse_args(args)
-
-    with open(f"{arg.output_dir}/performance_report.html") as fp:
+def parse_performance_report(output_dir: str):
+    with open(f"{output_dir}/performance_report.html") as fp:
         soup = BeautifulSoup(fp, "html.parser")
 
     report_body = soup.body.script.string
@@ -48,12 +40,12 @@ def main(args):
     number_of_workers = int(re.search("; Workers:(.+?) &", report_body).group(1))
     print(
         f"""
-    Performance Report 
-        Duration: {duration}s
-        Number of Tasks: {number_of_tasks}
-        Compute Duration: {compute_duration}s
-        Transfer Duration: {transfer_duration}s
-        Number of Workers: {number_of_workers}
+Performance Report 
+    Duration: {duration}s
+    Number of Tasks: {number_of_tasks}
+    Compute Duration: {compute_duration}s
+    Transfer Duration: {transfer_duration}s
+    Number of Workers: {number_of_workers}
     """
     )
     report_dict = json.loads(report_body)
@@ -77,7 +69,40 @@ def main(args):
             f"Function {function}, occurrences {np.sum(function_occurrences)}, average {avg_function_time:.3f}s."
         )
 
-    # Can capture transfer time, efi and sot computation time but not read and write rates in terms of MB/s
+
+def parse_console_log(output_dir):
+    read = []
+    write = []
+    with open(f"{output_dir}/console.log") as console_log:
+        for line in console_log:
+            log_bytes = float(re.search("memory: (.+?) bytes", line).group(1))
+            log_time = float(re.search("wall time: (.+?) s", line).group(1))
+            if "retrieve" in line:
+                read.append(log_bytes / log_time)
+            if "write" in line:
+                write.append(log_bytes / log_time)
+
+    mean_read = np.mean(read)
+    mean_write = np.mean(write)
+    print("\nConsole Log")
+    print(f"    Average read rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)")
+    print(
+        f"    Average write rate {np.mean(write):.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"
+    )
+
+
+def main(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Directory containing performance report and logs",
+    )
+    arg = parser.parse_args(args)
+
+    parse_performance_report(arg.output_dir)
+    parse_console_log(arg.output_dir)
+
     # For final benchmark need to turn off control, do separate runs with varying window sizes
 
 

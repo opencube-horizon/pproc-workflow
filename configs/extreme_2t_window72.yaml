@@ -1,0 +1,98 @@
+out_keys:
+  bitsPerValue: 12
+members:
+  end: 50
+  start: 1
+parameters:
+  2t:
+    targets: 
+      out_efi: "fileset:cascade_extreme_{param}.grib"
+      out_sot: "fileset:cascade_extreme_{param}.grib"
+    defs:
+      base_keys: &base_keys_tp
+        class: od
+        domain: g
+        expver: '0001'
+        levtype: sfc
+        param: 167
+      base_interp: &base_interp_tp
+        grid: 'O640'
+        intgrid: none
+        legendre-loader: shmem
+        matrix-loader: file-io
+    sources:
+      ens:
+        - <<: *base_keys_tp
+          date: 20230914
+          time: 12
+          stream: enfo
+          type: cf
+          interpolate: *base_interp_tp
+          source: fdb
+        - <<: *base_keys_tp
+          date: 20230914
+          time: 12
+          stream: enfo
+          type: pf
+          interpolate: *base_interp_tp
+          source: fdb
+      clim:
+        <<: *base_keys_tp
+        date: '20230911'
+        time: '00'
+        stream: efhs
+        type: cd
+        param: 228004
+        quantile: 100
+        interpolate: *base_interp_tp
+        step:
+          12-84: 0-72
+          36-108: 24-96
+          60-132: 48-120
+          84-156: 72-144
+          108-180: 96-168
+          132-204: 120-192
+          156-228: 144-216
+        source: fdb
+    eps: 1e-4
+    sot:
+    - 10
+    - 90
+    windows:
+    - grib_set:
+        edition: 1
+        timeRangeIndicator: 3
+        indicatorOfParameter: 167
+        localDefinitionNumber: 19
+        gribTablesVersionNo: 132
+        mars.expver: '9078'
+      periods:
+      - range:
+        - 12
+        - 84
+        - 6
+      - range:
+        - 36
+        - 108
+        - 6
+      - range:
+        - 60
+        - 132
+        - 6
+      - range:
+        - 84
+        - 156
+        - 6
+      - range:
+        - 108
+        - 180
+        - 6
+      - range:
+        - 132
+        - 204
+        - 6
+      - range:
+        - 156
+        - 228
+        - 6
+      window_operation: mean

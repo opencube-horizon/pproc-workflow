@@ -27,18 +27,19 @@ def main(args):
         default="",
     )
     parser.add_argument("--output_dir", type=str, help="Directory to write outputs to")
-    image_args = parser.parse_args(args)
+    parser.add_argument("--graph_config", type=str, help="Config for Cascade graph")
+    config_args = parser.parse_args(args)
 
     # Create graph
-    graph = Cascade.graph(Config("extreme", "configs/extreme.yaml"))
+    graph = Cascade.graph(Config("extreme", config_args.graph_config))
     dask_graph = to_dask_graph(graph)
 
     # Generate the spec
     extra_pod_config = {}
-    if image_args.image_secret != "":
-        extra_pod_conifg["imagePullSecrets"] = [{"name": image_args.image_secret}]
+    if config_args.image_secret != "":
+        extra_pod_conifg["imagePullSecrets"] = [{"name": config_args.image_secret}]
     pod_spec = make_pod_spec(
-        image=image_args.image,
+        image=config_args.image,
         memory_limit="16G",
         memory_request="16G",
         cpu_limit=2,
@@ -73,11 +74,15 @@ def main(args):
             pass
 
     # Save logs
-    logs = cluster._logs()
-    await logs
-    for pod, pod_log in logs:
-        with open(f"{args.output_dir}/{pod.lower()}.log", "w") as logfile:
-            logfile.write(pod_log)
+    logs = client.get_worker_logs()
+    for index, (pod, pod_log) in enumerate(logs.items()):
+        with open(f"{args.output_dir}/worker-{index}.log", "w") as logfile:
+            for log_line in pod_log:
+                logfile.write(f"{log_line}\n")
+    scheduler_log = client.get_scheduler_logs()
+    with open(f"{args.output_dir}/scheduler.log", "w") as scheduler_logfile:
+        for log_line in scheduler_log:
+            scheduler_logfile.write(f"{scheduler_log}\n")
 
     client.close()
     cluster.close()
