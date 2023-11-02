@@ -14,6 +14,7 @@ from cascade.transformers import to_dask_graph
 import dask
 from dask.delayed import Delayed
 from dask_kubernetes.classic import KubeCluster, make_pod_spec
+from dask.distributed import performance_report
 
 
 def main(args):
@@ -25,6 +26,7 @@ def main(args):
         help="Kubernetes secret name for pulling image",
         default="",
     )
+    parser.add_argument("--output_dir", type=str, help="Directory to write outputs to")
     image_args = parser.parse_args(args)
 
     # Create graph
@@ -55,18 +57,27 @@ def main(args):
 
     client = Client(cluster)
     outputs = [Delayed(x.name, dask_graph) for x in graph.sinks]
-    future = client.compute(outputs)
 
-    seq = as_completed(future)
-    del future
-    # Trigger gargage collection on completed end tasks so scheduler doesn't
-    # try to repeat them
-    errored_tasks = 0
-    for fut in seq:
-        if fut.status != "finished":
-            print(f"Task failed with exception: {fut.exception()}")
-            errored_tasks += 1
-        pass
+    with performance_report(f"{args.output_dir}/performance_report.html"):
+        future = client.compute(outputs)
+
+        seq = as_completed(future)
+        del future
+        # Trigger gargage collection on completed end tasks so scheduler doesn't
+        # try to repeat them
+        errored_tasks = 0
+        for fut in seq:
+            if fut.status != "finished":
+                print(f"Task failed with exception: {fut.exception()}")
+                errored_tasks += 1
+            pass
+
+    # Save logs
+    logs = cluster._logs()
+    await logs
+    for pod, pod_log in logs:
+        with open(f"{args.output_dir}/{pod.lower()}.log", "w") as logfile:
+            logfile.write(pod_log)
 
     client.close()
     cluster.close()
