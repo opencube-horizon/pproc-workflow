@@ -1,15 +1,9 @@
-import os
-import subprocess
-import socket
-import yaml
 import sys
 import argparse
 
 from cascade.cascade import Cascade
-from cascade.graphs import ContextGraph
-from cascade.graph_config import Config
-from cascade.executor import DaskExecutor
 from cascade.transformers import to_dask_graph
+from cascade.parsers import get_parser
 
 import dask
 from dask.delayed import Delayed
@@ -27,11 +21,11 @@ def main(args):
         default="",
     )
     parser.add_argument("--output_dir", type=str, help="Directory to write outputs to")
-    parser.add_argument("--graph_config", type=str, help="Config for Cascade graph")
-    config_args = parser.parse_args(args)
+    config_args, unparsed_args = parser.parse_known_args(args)
+    graph_args = get_parser("extreme").parse_args(unparsed_args)
 
     # Create graph
-    graph = Cascade.graph(Config("extreme", config_args.graph_config))
+    graph = Cascade.graph("extreme", graph_args)
     dask_graph = to_dask_graph(graph)
 
     # Generate the spec

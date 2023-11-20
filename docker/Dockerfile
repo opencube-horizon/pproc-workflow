@@ -82,3 +82,6 @@ RUN mkdir -p /home/config
 COPY fdb /home/config/fdb
 RUN cat /home/config/fdb/config.yaml \
     && /home/pproc-bundle/install/bin/fdb info --all
+
+RUN mkdir -p /home/data
+COPY extreme_167.grib /home/data/extreme_167.grib

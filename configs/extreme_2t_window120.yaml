@@ -20,39 +20,71 @@ parameters:
         intgrid: none
         legendre-loader: shmem
         matrix-loader: file-io
+      clim_steps: &clim_steps
+        12-132: 0-120
+        36-156: 24-144
+        60-180: 48-168
+        84-204: 72-192
+        108-228: 96-216
+        240-360: 240-360
     sources:
-      ens:
-        - <<: *base_keys_tp
-          date: 20230914
-          time: 12
-          stream: enfo
-          type: cf
+      fdb:
+        ens:
+          - <<: *base_keys_tp
+            date: "%DATE%"
+            time: 12
+            stream: enfo
+            type: cf
+            interpolate: *base_interp_tp
+            source: "%SOURCE%"
+          - <<: *base_keys_tp
+            date: "%DATE%"
+            time: 12
+            stream: enfo
+            type: pf
+            interpolate: *base_interp_tp
+            source: "%SOURCE%"
+        clim:
+          <<: *base_keys_tp
+          date: "%CLIM_DATE%"
+          time: '00'
+          stream: efhs
+          type: cd
+          param: 228004
+          quantile: 100
           interpolate: *base_interp_tp
-          source: fdb
-        - <<: *base_keys_tp
-          date: 20230914
-          time: 12
-          stream: enfo
-          type: pf
+          step: *clim_steps
+          source: "%SOURCE%"
+      fileset:
+        ens:
+          - <<: *base_keys_tp
+            date: "%DATE%"
+            time: 12
+            stream: enfo
+            type: cf
+            interpolate: *base_interp_tp
+            source: "%SOURCE%"
+            location: "%LOCATION%"
+          - <<: *base_keys_tp
+            date: "%DATE%"
+            time: 12
+            stream: enfo
+            type: pf
+            interpolate: *base_interp_tp
+            source: "%SOURCE%"
+            location: "%LOCATION%"
+        clim:
+          <<: *base_keys_tp
+          date: "%CLIM_DATE%"
+          time: '00'
+          stream: efhs
+          type: cd
+          param: 228004
+          quantile: 100
           interpolate: *base_interp_tp
-          source: fdb
-      clim:
-        <<: *base_keys_tp
-        date: '20230911'
-        time: '00'
-        stream: efhs
-        type: cd
-        param: 228004
-        quantile: 100
-        interpolate: *base_interp_tp
-        step:
-          12-132: 0-120
-          36-156: 24-144
-          60-180: 48-168
-          84-204: 72-192
-          108-228: 96-216
-          240-360: 240-360
-        source: fdb
+          step: *clim_steps
+          source: "%SOURCE%"
+          location: "%LOCATION%"
     eps: 1e-4
     sot:
     - 10
