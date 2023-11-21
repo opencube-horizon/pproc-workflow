@@ -8,7 +8,7 @@ from cascade.parsers import get_parser
 import dask
 from dask.delayed import Delayed
 from dask_kubernetes.classic import KubeCluster, make_pod_spec
-from dask.distributed import performance_report, LocalCluster
+from dask.distributed import performance_report
 
 
 def main(args):
@@ -49,14 +49,6 @@ def main(args):
         extra_pod_config=extra_pod_config,
         extra_container_config=extra_container_config,
     )
-    # Create the cluster, allowing it to scale
-    if config_args.local:
-        cluster = LocalCluster(
-            n_workers=2, threads_per_worker=1, processes=True, memory_limit="15G"
-        )
-    else:
-        cluster = KubeCluster(pod_spec)
-        cluster.adapt(minimum=1, maximum=2)
 
     # Set up distributed client
     dask.config.set(
@@ -64,7 +56,20 @@ def main(args):
     )  # Important to prevent root task overloading
     from dask.distributed import Client, as_completed
 
-    client = Client(cluster)
+    if config_args.local:
+        client = Client(
+            memory_limit="15G",
+            processes=True,
+            n_workers=2,
+            threads_per_worker=1,
+        )
+        cluster = None
+    else:
+        # Create the cluster, allowing it to scale
+        cluster = KubeCluster(pod_spec)
+        cluster.adapt(minimum=1, maximum=2)
+        client = Client(cluster)
+
     outputs = [Delayed(x.name, dask_graph) for x in graph.sinks]
 
     with performance_report(f"{config_args.output_dir}/performance_report.html"):
@@ -93,7 +98,8 @@ def main(args):
             scheduler_logfile.write(f"{scheduler_log}\n")
 
     client.close()
-    cluster.close()
+    if cluster is not None:
+        cluster.close()
 
 
 if __name__ == "__main__":

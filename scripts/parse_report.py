@@ -61,10 +61,17 @@ Performance Report
     assert task_stream["title"] == "Task Stream"
     key_items = find_key_values("entries", task_stream)
     columns = [item[0] for item in key_items]
+    name_index = columns.index("name")
+    duration_index = columns.index("duration_text")
 
-    for function in ["retrieve@cd", "retrieve@(.)f", "efi", "sot", "write", "transfer"]:
-        name_index = columns.index("name")
-        duration_index = columns.index("duration_text")
+    for function in [
+        "retrieve@type=cd",
+        "retrieve@type=(.)f",
+        "efi",
+        "sot",
+        "write",
+        "transfer",
+    ]:
         function_occurrences = np.array(
             [re.search(f"^{function}", x) is not None for x in key_items[name_index][1]]
         )
