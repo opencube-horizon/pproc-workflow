@@ -1,7 +1,7 @@
 out_keys:
   bitsPerValue: 12
 members:
-  end: 50
+  end: 5
   start: 1
 parameters:
   2t:
@@ -68,14 +68,12 @@ parameters:
             time: 12
             stream: enfo
             type: cf
-            interpolate: *base_interp_tp
             location: "%LOCATION%"
           - <<: *base_keys_tp
             date: "%DATE%"
             time: 12
             stream: enfo
             type: pf
-            interpolate: *base_interp_tp
             location: "%LOCATION%"
         clim:
           <<: *base_keys_tp
@@ -85,9 +83,8 @@ parameters:
           type: cd
           param: 228004
           quantile: 100
-          interpolate: *base_interp_tp
           step: *clim_steps
-          location: "%LOCATION%"
+          location: "%CLIM_LOCATION%"
     eps: 1e-4
     sot:
     - 10

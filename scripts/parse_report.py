@@ -24,20 +24,26 @@ def find_key_values(key, dic):
     return None
 
 
+def search(function_str, text):
+    return re.search(function_str, text).group(1)
+
+
+def duration_in_sec(duration_str):
+    if "ms" in duration_str:
+        return float(duration_str.rstrip("ms")) / 1000
+    return float(duration_str.rstrip("s"))
+
+
 def parse_performance_report(output_dir: str):
     with open(f"{output_dir}/performance_report.html") as fp:
         soup = BeautifulSoup(fp, "html.parser")
 
     report_body = soup.body.script.string
-    duration = float(re.search("; Duration:(.+?) &", report_body).group(1).rstrip("s"))
-    number_of_tasks = int(re.search("; number of tasks:(.+?) &", report_body).group(1))
-    compute_duration = float(
-        re.search("; compute time:(.+?) &", report_body).group(1).rstrip("s")
-    )
-    transfer_duration = float(
-        re.search("; transfer time:(.+?) &", report_body).group(1).rstrip("s")
-    )
-    number_of_workers = int(re.search("; Workers:(.+?) &", report_body).group(1))
+    duration = duration_in_sec(search("; Duration:(.+?) &", report_body))
+    number_of_tasks = int(search("; number of tasks:(.+?) &", report_body))
+    compute_duration = duration_in_sec(search("; compute time:(.+?) &", report_body))
+    transfer_duration = duration_in_sec(search("; transfer time:(.+?) &", report_body))
+    number_of_workers = int(search("; Workers:(.+?) &", report_body))
     print(
         f"""
 Performance Report 
@@ -58,12 +64,14 @@ Performance Report
 
     for function in ["retrieve@cd", "retrieve@(.)f", "efi", "sot", "write", "transfer"]:
         name_index = columns.index("name")
-        duration_index = columns.index("duration")
+        duration_index = columns.index("duration_text")
         function_occurrences = np.array(
             [re.search(f"^{function}", x) is not None for x in key_items[name_index][1]]
         )
-        avg_function_time = (
-            np.mean(np.array(key_items[duration_index][1])[function_occurrences]) / 1000
+        avg_function_time = np.mean(
+            np.asarray(list(map(duration_in_sec, key_items[duration_index][1])))[
+                function_occurrences
+            ]
         )
         print(
             f"Function {function}, occurrences {np.sum(function_occurrences)}, average {avg_function_time:.3f}s."
@@ -75,11 +83,13 @@ def parse_console_log(output_dir):
     write = []
     with open(f"{output_dir}/console.log") as console_log:
         for line in console_log:
-            log_bytes = float(re.search("memory: (.+?) bytes", line).group(1))
-            log_time = float(re.search("wall time: (.+?) s", line).group(1))
-            if "retrieve" in line:
+            if line.startswith("retrieve"):
+                log_bytes = float(search("memory: (.+?) bytes", line))
+                log_time = float(search("wall time: (.+?) s", line))
                 read.append(log_bytes / log_time)
-            if "write" in line:
+            if line.startswith("write"):
+                log_bytes = float(search("memory: (.+?) bytes", line))
+                log_time = float(search("wall time: (.+?) s", line))
                 write.append(log_bytes / log_time)
 
     mean_read = np.mean(read)
