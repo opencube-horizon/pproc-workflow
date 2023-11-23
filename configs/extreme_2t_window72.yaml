@@ -1,7 +1,7 @@
 out_keys:
   bitsPerValue: 12
 members:
-  end: 50
+  end: 10
   start: 1
 parameters:
   2t:
@@ -37,14 +37,12 @@ parameters:
             stream: enfo
             type: cf
             interpolate: *base_interp_tp
-            source: "%SOURCE%"
           - <<: *base_keys_tp
             date: "%DATE%"
             time: 12
             stream: enfo
             type: pf
             interpolate: *base_interp_tp
-            source: "%SOURCE%"
         clim:
           <<: *base_keys_tp
           date: "%CLIM_DATE%"
@@ -55,7 +53,6 @@ parameters:
           quantile: 100
           interpolate: *base_interp_tp
           step: *clim_steps
-          source: "%SOURCE%"
       fileset:
         ens:
           - <<: *base_keys_tp
@@ -63,16 +60,12 @@ parameters:
             time: 12
             stream: enfo
             type: cf
-            interpolate: *base_interp_tp
-            source: "%SOURCE%"
             location: "%LOCATION%"
           - <<: *base_keys_tp
             date: "%DATE%"
             time: 12
             stream: enfo
             type: pf
-            interpolate: *base_interp_tp
-            source: "%SOURCE%"
             location: "%LOCATION%"
         clim:
           <<: *base_keys_tp
@@ -82,10 +75,8 @@ parameters:
           type: cd
           param: 228004
           quantile: 100
-          interpolate: *base_interp_tp
           step: *clim_steps
-          source: "%SOURCE%"
-          location: "%LOCATION%"
+          location: "%CLIM_LOCATION%"
     eps: 1e-4
     sot:
     - 10
@@ -115,16 +106,16 @@ parameters:
         - 84
         - 156
         - 6
-      - range:
-        - 108
-        - 180
-        - 6
-      - range:
-        - 132
-        - 204
-        - 6
-      - range:
-        - 156
-        - 228
-        - 6
+      # - range:
+      #   - 108
+      #   - 180
+      #   - 6
+      # - range:
+      #   - 132
+      #   - 204
+      #   - 6
+      # - range:
+      #   - 156
+      #   - 228
+      #   - 6
       window_operation: mean

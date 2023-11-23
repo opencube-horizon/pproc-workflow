@@ -1,7 +1,7 @@
 out_keys:
   bitsPerValue: 12
 members:
-  end: 5
+  end: 10
   start: 1
 parameters:
   2t:
@@ -122,36 +122,36 @@ parameters:
         - 132
         - 156
         - 6
-      - range:
-        - 156
-        - 180
-        - 6
-      - range:
-        - 180
-        - 204
-        - 6
-      - range:
-        - 204
-        - 228
-        - 6
-      - range:
-        - 240
-        - 264
-        - 6
-      - range:
-        - 264
-        - 288
-        - 6
-      - range:
-        - 288
-        - 312
-        - 6
-      - range:
-        - 312
-        - 336
-        - 6
-      - range:
-        - 336
-        - 360
-        - 6
+      # - range:
+      #   - 156
+      #   - 180
+      #   - 6
+      # - range:
+      #   - 180
+      #   - 204
+      #   - 6
+      # - range:
+      #   - 204
+      #   - 228
+      #   - 6
+      # - range:
+      #   - 240
+      #   - 264
+      #   - 6
+      # - range:
+      #   - 264
+      #   - 288
+      #   - 6
+      # - range:
+      #   - 288
+      #   - 312
+      #   - 6
+      # - range:
+      #   - 312
+      #   - 336
+      #   - 6
+      # - range:
+      #   - 336
+      #   - 360
+      #   - 6
       window_operation: mean

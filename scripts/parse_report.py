@@ -31,7 +31,14 @@ def search(function_str, text):
 def duration_in_sec(duration_str):
     if "ms" in duration_str:
         return float(duration_str.rstrip("ms")) / 1000
-    return float(duration_str.rstrip("s"))
+    try:
+        strip_s = duration_str.rstrip("s")
+        duration = float(strip_s)
+    except ValueError:
+        assert "m" in strip_s
+        minutes, seconds = map(float, strip_s.split("m"))
+        duration = 60 * minutes + seconds
+    return duration
 
 
 def parse_performance_report(output_dir: str):
@@ -102,6 +109,7 @@ def parse_console_log(output_dir):
     mean_read = np.mean(read)
     mean_write = np.mean(write)
     print("\nConsole Log")
+    print("CURRENTLY INACCURATE - need to fix memory measurement!")
     print(f"    Average read rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)")
     print(
         f"    Average write rate {np.mean(write):.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"

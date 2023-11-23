@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.0.0-experimental
-FROM ghcr.io/dask/dask:latest-py3.10
+FROM ghcr.io/dask/dask:2023.11.0-py3.10
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -y gnupg
