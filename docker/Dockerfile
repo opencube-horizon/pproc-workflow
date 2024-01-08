@@ -66,22 +66,38 @@ ENV LD_LIBRARY_PATH=/home/pproc-bundle/install/lib:$LD_LIBRARY_PATH
 ENV MIR_INCLUDE_DIRS=/home/pproc-bundle/install/include
 ENV MIR_LIB_DIR=/home/pproc-bundle/install/lib
 
-RUN --mount=type=ssh pip install cython
+RUN --mount=type=ssh pip install \
+    cython \
+    eccodes \
+    earthkit-data \
+    "filelock>=3.12.0" \
+    numexpr \
+    dill \
+    sortedcontainers \
+    scipy \
+    array_api_compat \
+    pyvis \
+    git+ssh://git@git.ecmwf.int/ecsdk/meteokit.git \
+    git+https://github.com/ecmwf/pyfdb.git@master \
+    git+ssh://git@git.ecmwf.int/ecsdk/pproc.git \
+    git+ssh://git@github.com/ecmwf/cascade.git \
+    git+ssh://git@github.com/ecmwf/pproc-cascade.git 
 
 RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch master --single-branch --depth 1 \
     && cd /home/mir-python \
     && python setup.py build_ext \
     && python setup.py install
 
-RUN --mount=type=ssh pip install git+ssh://git@github.com/ecmwf/cascade.git 
-
 # Configure FDB
 ENV FDB_HANDLE_LUSTRE_STRIPE=0
-ENV FDB_HOME=/home/config/fdb
-RUN mkdir -p /home/config
-COPY fdb /home/config/fdb
-RUN cat /home/config/fdb/config.yaml \
+ENV FDB_HOME=/home/config
+ENV FDB_ROOT=/home/fdb
+RUN rm -rf ${FDB_ROOT} ${FDB_HOME} \
+    && mkdir -p ${FDB_HOME}/etc/fdb ${FDB_ROOT}
+COPY fdb/schema ${FDB_HOME}/etc/fdb/schema
+COPY fdb/config.yaml ${FDB_HOME}/etc/fdb/config.yaml
+RUN sed -i "s:FDB_SCHEMA:${FDB_HOME}/etc/fdb/schema:" ${FDB_HOME}/etc/fdb/config.yaml \
+    && sed -i "s:FDB_ROOT:${FDB_ROOT}:" ${FDB_HOME}/etc/fdb/config.yaml \
+    && cat ${FDB_HOME}/etc/fdb/config.yaml \
     && /home/pproc-bundle/install/bin/fdb info --all
-
-RUN mkdir -p /home/data
-COPY extreme_167.grib /home/data/extreme_167.grib
+COPY extreme_167.grib /home/extreme_167.grib

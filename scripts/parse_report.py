@@ -97,22 +97,21 @@ def parse_console_log(output_dir):
     write = []
     with open(f"{output_dir}/console.log") as console_log:
         for line in console_log:
-            if line.startswith("retrieve"):
-                log_bytes = float(search("memory: (.+?) bytes", line))
+            if "RETRIEVE" in line:
+                log_bytes = float(search("size: (.+?) bytes", line))
                 log_time = float(search("wall time: (.+?) s", line))
                 read.append(log_bytes / log_time)
-            if line.startswith("write"):
-                log_bytes = float(search("memory: (.+?) bytes", line))
+            if "WRITE" in line:
+                log_bytes = float(search("size: (.+?) bytes", line))
                 log_time = float(search("wall time: (.+?) s", line))
                 write.append(log_bytes / log_time)
 
     mean_read = np.mean(read)
     mean_write = np.mean(write)
     print("\nConsole Log")
-    print("CURRENTLY INACCURATE - need to fix memory measurement!")
-    print(f"    Average read rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)")
+    print(f"    Function read, occurrences {len(read)}, average rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)")
     print(
-        f"    Average write rate {np.mean(write):.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"
+        f"    Function write, occurrences {len(write)}, average rate {mean_write:.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"
     )
 
 

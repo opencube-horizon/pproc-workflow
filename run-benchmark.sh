@@ -6,7 +6,7 @@ source .env
 DATE=20231122
 CLIM_DATE=20231120
 SOURCE=fileset
-LOCATION='/home/data/extreme_167.grib'
+LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
 LOCAL=""

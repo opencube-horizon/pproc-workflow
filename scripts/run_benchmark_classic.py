@@ -6,12 +6,36 @@ import os
 
 from cascade.cascade import Cascade
 from cascade.transformers import to_dask_graph
-from cascade.parsers import get_parser
+from ppcascade.parsers import get_parser
 
 import dask
 from dask.delayed import Delayed
 from dask_kubernetes.classic import KubeCluster, make_pod_spec
 from dask.distributed import performance_report
+
+
+def get_kube_logs(cluster, output_dir):
+    env = {"KUBECONFIG": os.environ["KUBECONFIG"], "PATH": os.environ["PATH"]}
+    subprocess.Popen(
+        [
+            "stern",
+            f"{cluster.scheduler._pod.metadata.name}",
+        ],
+        env=env,
+        stdout=open(f"{output_dir}/scheduler.log", "w"),
+        stderr=subprocess.STDOUT,
+    )
+    subprocess.Popen(
+        [
+            "stern",
+            "dask-*",
+            "--exclude-pod", 
+            f"{cluster.scheduler._pod.metadata.name}",
+        ],
+        env=env,
+        stdout=open(f"{output_dir}/worker.log", "w"),
+        stderr=subprocess.STDOUT,
+    )
 
 
 def execute_benchark(config_args, client, cluster, graph):
@@ -45,32 +69,6 @@ def execute_benchark(config_args, client, cluster, graph):
         with open(f"{config_args.output_dir}/scheduler.log", "w") as scheduler_logfile:
             for log_line in scheduler_log:
                 scheduler_logfile.write(f"{scheduler_log}\n")
-    else:
-        time.sleep(60)
-        env = {"KUBECONFIG": os.environ["KUBECONFIG"], "PATH": os.environ["PATH"]}
-        subprocess.run(
-            [
-                "kubectl",
-                "logs",
-                f"{cluster.scheduler._pod.metadata.name}",
-            ],
-            env=env,
-            stdout=open(f"{config_args.output_dir}/scheduler.log", "w"),
-            stderr=subprocess.STDOUT,
-            check=True,
-        )
-        for i, x in cluster.workers.items():
-            subprocess.run(
-                [
-                    "kubectl",
-                    "logs",
-                    f"{x._pod.metadata.name}",
-                ],
-                env=env,
-                stdout=open(f"{config_args.output_dir}/worker-{i}.log", "w"),
-                stderr=subprocess.STDOUT,
-                check=True,
-            )
 
     if errored_tasks != 0:
         raise Exception(f"Completed with {errored_tasks} failed tasks")
@@ -132,10 +130,11 @@ def main(args):
         # Create the cluster, allowing it to scale
         cluster = KubeCluster(
             pod_spec,
-            n_workers=5,
             env={"DASK_LOGGING__DISTRIBUTED": "debug", "PYTHONUNBUFFERED": "1"},
         )
+        cluster.adapt(minimum=1, maximum=5)
         client = Client(cluster)
+        get_kube_logs(cluster, config_args.output_dir)
         execute_benchark(config_args, client, cluster, graph)
         client.shutdown()
 
