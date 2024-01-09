@@ -32,7 +32,7 @@ OUTPUT_DIR=bench_run
 LOCAL=""
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
-NEXT_RUN_NUMBER=$(printf "%06d" "$((LATEST_RUN_NUMBER + 1))")
+NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
 
 for config in configs/*.yaml;
     do 
