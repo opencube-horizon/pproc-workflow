@@ -56,7 +56,7 @@ RUN mkdir -p -m 0600 /root/.ssh \
     && cat /root/.ssh/known_hosts
 
 # pproc-bundle
-RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/ecsdk/pproc-bundle.git -v --branch master --single-branch --depth 1 
+RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/~mawj/pproc-bundle.git -v --branch opencube-benchmark --single-branch --depth 1 
 RUN --mount=type=ssh cd /home/pproc-bundle \
     && ./pproc-bundle create \
     && ./pproc-bundle build --without-infero \
@@ -80,8 +80,8 @@ RUN --mount=type=ssh pip install \
     git+ssh://git@git.ecmwf.int/ecsdk/meteokit.git \
     git+https://github.com/ecmwf/pyfdb.git@master \
     git+ssh://git@git.ecmwf.int/ecsdk/pproc.git \
-    git+ssh://git@github.com/ecmwf/cascade.git \
-    git+ssh://git@github.com/ecmwf/pproc-cascade.git 
+    git+ssh://git@github.com/ecmwf/cascade.git@92a3a8e \
+    git+ssh://git@github.com/ecmwf/pproc-cascade.git@40883a7
 
 RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch master --single-branch --depth 1 \
     && cd /home/mir-python \

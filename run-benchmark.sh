@@ -1,8 +1,28 @@
 #!/bin/bash
 set -e
 
-source .env
+# Fetch and build software
+if [[ ! -f build.done ]] ; then
+  rm -f build.fail
+  sbatch build.sh
+fi
 
+# Wait for the build to finish
+while [[ ! -f build.done && ! -f build.fail ]] ; do
+  sleep 1
+done
+if [[ -f build.fail ]] ; then
+  echo "Build failed. Aborting."
+  exit 1
+fi
+
+# Activate environment and load dependencies
+module load intel/2021.4.0  hpcx-openmpi/2.9.0  python3/3.10.10-01 fftw/3.3.9  aec/1.0.6  openblas/0.3.13 eclib/1.1.0
+source env/bin/activate
+BUNDLE_PATH=$(realpath build/pproc-bundle)
+export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
+
+# Run benchmark
 DATE=20231122
 CLIM_DATE=20231120
 SOURCE=fileset
@@ -37,3 +57,4 @@ for config in configs/*.yaml;
     python scripts/parse_report.py --output_dir $RUN_OUTPUT_DIR  > $RUN_OUTPUT_DIR/results.txt 
     rm config_temp.yaml
 done
+deactivate

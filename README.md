@@ -2,15 +2,7 @@
 
 ## Dependencies 
 
-Running the benchmark requires the installation of the packages in https://git.ecmwf.int/projects/ECSDK/repos/pproc-bundle, and mir-python https://git.ecmwf.int/projects/MIR/repos/mir-python, which requires cython. The remaining Python dependencies are specified in the requirements.txt file.
-It might also be necessary to add the path to the virtual environment lib directory to $LD_LIBRARY_PATH.
-```
-export LD_LIBRARY_PATH=/path/to/virtualenv/libs:$LD_LIBRARY_PATH
-```
-
-## FDB
-
-The benchmark requires a remote FDB to be running where the host and port must be configured correctly in docker/fdb/config.yaml for the docker image to be set up to use the remote FDB. The schema in docker/fdb/schema must also match that of the remote FDB.
+Running the benchmark requires the installation of the packages in the ECMWF Github and Bitbucket repositories, not all of which are publicly available. SSH access to these is assumed for the running of the benchmark.
 
 ## Build Docker Image
 
@@ -34,4 +26,8 @@ The execution of the task graphs uses the classic Dask KubeCluster, which requir
     - "create"
     - "delete"
 ```
+
+# Run Benchmark
+
+The benchmark can be run by executing the `run-benchmark.sh` script, which will build and install the required dependencies.
 
