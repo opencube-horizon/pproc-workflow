@@ -29,6 +29,8 @@ SOURCE=fileset
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark:v1
+SECRET=github
 LOCAL=""
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
@@ -47,7 +49,7 @@ for config in configs/*.yaml;
     echo $RUN_OUTPUT_DIR
     rm -rf $RUN_OUTPUT_DIR
     mkdir -p $RUN_OUTPUT_DIR
-    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image "docker.io/jinmannwong/pproc-kubernetes:file" --image_secret regcred --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim | tee $RUN_OUTPUT_DIR/console.log
+    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim | tee $RUN_OUTPUT_DIR/console.log
     if [ "$LOCAL" == "" ]; then 
         for worker_log in $RUN_OUTPUT_DIR/worker*.log;
         do 
