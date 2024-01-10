@@ -29,5 +29,5 @@ The execution of the task graphs uses the classic Dask KubeCluster, which requir
 
 # Run Benchmark
 
-The benchmark can be run by executing the `run-benchmark.sh` script, which will build and install the required dependencies.
+Assuming access to a Kubernetes Cluster, the benchmark can be run by executing the `run-benchmark.sh` script, which will build and install the required dependencies.
 
