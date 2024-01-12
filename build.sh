@@ -45,7 +45,7 @@ source env/bin/activate
 python -m pip install -r requirements.txt
     
 cd build
-git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch master --single-branch --depth 1 
+git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch 0.1.0 --single-branch --depth 1 
 cd mir-python 
 python setup.py build_ext 
 python setup.py install

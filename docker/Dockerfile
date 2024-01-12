@@ -67,23 +67,23 @@ ENV MIR_INCLUDE_DIRS=/home/pproc-bundle/install/include
 ENV MIR_LIB_DIR=/home/pproc-bundle/install/lib
 
 RUN --mount=type=ssh pip install \
-    cython \
-    eccodes \
-    earthkit-data \
+    cython==3.0.8 \
+    eccodes==1.6.1 \
+    earthkit-data==0.4.0 \
     "filelock>=3.12.0" \
-    numexpr \
-    dill \
+    numexpr==2.8.8 \
+    dill==0.3.7 \
     sortedcontainers \
-    scipy \
-    array_api_compat \
-    pyvis \
-    git+ssh://git@git.ecmwf.int/ecsdk/meteokit.git \
-    git+https://github.com/ecmwf/pyfdb.git@master \
-    git+ssh://git@git.ecmwf.int/ecsdk/pproc.git \
+    scipy==1.11.4 \
+    array_api_compat==1.4 \
+    pyvis==0.3.2 \
+    git+ssh://git@git.ecmwf.int/ecsdk/meteokit.git@0.1.0 \
+    git+https://github.com/ecmwf/pyfdb.git@0.0.3 \
+    git+ssh://git@git.ecmwf.int/ecsdk/pproc.git@1.0.0 \
     git+ssh://git@github.com/ecmwf/cascade.git@92a3a8e \
     git+ssh://git@github.com/ecmwf/pproc-cascade.git@40883a7
 
-RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch master --single-branch --depth 1 \
+RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch 0.1.0 --single-branch --depth 1 \
     && cd /home/mir-python \
     && python setup.py build_ext \
     && python setup.py install

@@ -29,7 +29,7 @@ SOURCE=fileset
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
-IMAGE=ghcr.io/opencube-horizon/pproc-benchmark:v1
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:ea83363ca2f193019ade685908ad7da40afaf824be064438de8a59af32502132
 SECRET=github
 LOCAL=""
 

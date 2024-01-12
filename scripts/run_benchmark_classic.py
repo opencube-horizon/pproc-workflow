@@ -113,7 +113,6 @@ def main(args):
         if config_args.image_secret != "":
             extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
         extra_container_config = {
-            "imagePullPolicy": "Always",
             "volumeMounts": [{"mountPath": "/tmp", "name": "cache-volume"}],
         }
         pod_spec = make_pod_spec(
