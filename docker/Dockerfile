@@ -88,16 +88,4 @@ RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --bran
     && python setup.py build_ext \
     && python setup.py install
 
-# Configure FDB
-ENV FDB_HANDLE_LUSTRE_STRIPE=0
-ENV FDB_HOME=/home/config
-ENV FDB_ROOT=/home/fdb
-RUN rm -rf ${FDB_ROOT} ${FDB_HOME} \
-    && mkdir -p ${FDB_HOME}/etc/fdb ${FDB_ROOT}
-COPY fdb/schema ${FDB_HOME}/etc/fdb/schema
-COPY fdb/config.yaml ${FDB_HOME}/etc/fdb/config.yaml
-RUN sed -i "s:FDB_SCHEMA:${FDB_HOME}/etc/fdb/schema:" ${FDB_HOME}/etc/fdb/config.yaml \
-    && sed -i "s:FDB_ROOT:${FDB_ROOT}:" ${FDB_HOME}/etc/fdb/config.yaml \
-    && cat ${FDB_HOME}/etc/fdb/config.yaml \
-    && /home/pproc-bundle/install/bin/fdb info --all
 COPY extreme_167.grib /home/extreme_167.grib
