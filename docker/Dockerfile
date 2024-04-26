@@ -79,11 +79,11 @@ RUN --mount=type=ssh pip install \
     pyvis==0.3.2 \
     git+ssh://git@git.ecmwf.int/ecsdk/meteokit.git@0.1.0 \
     git+https://github.com/ecmwf/pyfdb.git@0.0.3 \
-    git+ssh://git@git.ecmwf.int/ecsdk/pproc.git@1.0.0 \
+    git+ssh://git@git.ecmwf.int/ecsdk/pproc.git@1.1.0 \
     git+ssh://git@github.com/ecmwf/cascade.git@92a3a8e \
     git+ssh://git@github.com/ecmwf/pproc-cascade.git@40883a7
 
-RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch 0.1.0 --single-branch --depth 1 \
+RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --branch 0.2.0 --single-branch --depth 1 \
     && cd /home/mir-python \
     && python setup.py build_ext \
     && python setup.py install
