@@ -3,21 +3,12 @@ set -e
 
 # Fetch and build software
 if [[ ! -f build.done ]] ; then
-  rm -f build.fail
-  sbatch build.sh
-fi
-
-# Wait for the build to finish
-while [[ ! -f build.done && ! -f build.fail ]] ; do
-  sleep 1
-done
-if [[ -f build.fail ]] ; then
-  echo "Build failed. Aborting."
+  echo "Bundle not created. Aborting."
   exit 1
 fi
 
+
 # Activate environment and load dependencies
-module load intel/2021.4.0  hpcx-openmpi/2.9.0  python3/3.10.10-01 fftw/3.3.9  aec/1.0.6  openblas/0.3.13 eclib/1.1.0
 source env/bin/activate
 BUNDLE_PATH=$(realpath build/pproc-bundle)
 export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
@@ -29,7 +20,7 @@ SOURCE=fileset
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
-IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:ea83363ca2f193019ade685908ad7da40afaf824be064438de8a59af32502132
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:697625471cffb7d8c482f1f1a704f2247dfc2ff147435018f01a766d2f72c870
 SECRET=github
 LOCAL=""
 

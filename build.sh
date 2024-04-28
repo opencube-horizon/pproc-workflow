@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=build
-#SBATCH --qos=nf
-#SBATCH --ntasks=32
-#SBATCH --mem=32G
-#SBATCH --output=build.log
 
 basewd=$PWD
 
@@ -18,9 +13,6 @@ handle_error() {
 trap handle_error ERR
 
 set -e
-
-module load intel/2021.4.0  hpcx-openmpi/2.9.0  python3/3.10.10-01 fftw/3.3.9  aec/1.0.6  openblas/0.3.13
-export CMAKE_PREFIX_PATH=$openblas_DIR:$CMAKE_PREFIX_PATH
 
 # Build binary packages
 mkdir -p build
@@ -40,7 +32,7 @@ export MIR_INCLUDE_DIRS=$BUNDLE_PATH/install/include
 export MIR_LIB_DIR=$BUNDLE_PATH/install/lib64
 
 rm -rf env
-python3 -m venv env
+python3.11 -m venv env
 source env/bin/activate
 python -m pip install -r requirements.txt
     
