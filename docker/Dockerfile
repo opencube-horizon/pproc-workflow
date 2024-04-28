@@ -1,53 +1,16 @@
 # syntax=docker/dockerfile:1.0.0-experimental
-FROM ghcr.io/dask/dask:2023.11.0-py3.10
+FROM --platform=$BUILDPLATFORM ghcr.io/opencube-horizon/pproc-dask:multi-arch
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && apt-get install -y gnupg
-
-# get intel key
-RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-    && apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt update \ 
+    && DEBIAN_FRONTEND=noninteractive apt install -y \
+    ssh \
+    gnupg \
     build-essential \
-    intel-mkl \
-    libopenblas-dev \
-    libaec-dev \
     git \
-    openmpi-bin \
-    libopenmpi-dev \
-    gfortran \
     curl \
     flex \
     bison
 
-ENV CMAKE_LIBRARY_PATH=$CMAKE_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu
-ENV CMAKE_INCLUDE_PATH=$CMAKE_INCLUDE_PATH:/usr/include/mkl
-
-# install fftw
-ADD http://www.fftw.org/fftw-3.3.9.tar.gz /fftw-3.3.9.tar.gz
-RUN tar -xzf /fftw-3.3.9.tar.gz \
-    && cd fftw-3.3.9 \
-    && ./configure --enable-type-prefix \
-            --prefix=/usr \
-            --enable-shared  \
-            --disable-static \
-            --enable-threads \
-            --enable-sse2    \
-            --enable-avx \
-    && make \
-    && make install \ 
-    && make clean \
-    && ./configure --enable-float \
-            --enable-type-prefix \
-            --prefix=/usr \
-            --enable-shared  \
-            --disable-static \
-            --enable-threads \
-            --enable-sse2    \
-            --enable-avx \
-    && make \
-    && make install
 
 WORKDIR /home
 RUN mkdir -p -m 0600 /root/.ssh \
@@ -59,6 +22,7 @@ RUN mkdir -p -m 0600 /root/.ssh \
 RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/~mawj/pproc-bundle.git -v --branch opencube-benchmark --single-branch --depth 1 
 RUN --mount=type=ssh cd /home/pproc-bundle \
     && ./pproc-bundle create \
+    && sed -i '19i\#include "eckit/log/JSON.h"' /home/pproc-bundle/source/mir/src/mir/repres/gauss/Gaussian.cc \
     && ./pproc-bundle build --without-infero \
     && build/install.sh --fast 
 
@@ -89,3 +53,4 @@ RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --bran
     && python setup.py install
 
 COPY extreme_167.grib /home/extreme_167.grib
+
