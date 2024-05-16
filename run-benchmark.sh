@@ -16,13 +16,14 @@ export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
 # Run benchmark
 DATE=20231122
 CLIM_DATE=20231120
-SOURCE=fileset
+SOURCE=fdb #fileset
+TARGET=fdb: #fileset:cascade_extreme_{param}.grib
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
 IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:697625471cffb7d8c482f1f1a704f2247dfc2ff147435018f01a766d2f72c870
 SECRET=github
-LOCAL=""
+LOCAL="--local"
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
@@ -35,6 +36,7 @@ for config in configs/*.yaml;
     sed -i -e "s/%CLIM_DATE%/$CLIM_DATE/g" config_temp.yaml
     sed -i -e "s#%LOCATION%#$LOCATION#g" config_temp.yaml
     sed -i -e "s#%CLIM_LOCATION%#$CLIM_LOCATION#g" config_temp.yaml
+    sed -i -e "s#%TARGET%#$TARGET#g" config_temp.yaml
     CONFIG_NAME=$(basename ${config%.*})
     RUN_OUTPUT_DIR=$OUTPUT_DIR/$NEXT_RUN_NUMBER/$CONFIG_NAME
     echo $RUN_OUTPUT_DIR

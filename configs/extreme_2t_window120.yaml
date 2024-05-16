@@ -6,8 +6,8 @@ members:
 parameters:
   2t:
     targets: 
-      out_efi: "fileset:cascade_extreme_{param}.grib"
-      out_sot: "fileset:cascade_extreme_{param}.grib"
+      out_efi: "%TARGET%"
+      out_sot: "%TARGET%"    
     defs:
       base_keys: &base_keys_tp
         class: od
