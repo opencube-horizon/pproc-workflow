@@ -1,0 +1,6 @@
+---
+type: remote
+host: infra1
+port: 9000
+engine: remote
+store: remote

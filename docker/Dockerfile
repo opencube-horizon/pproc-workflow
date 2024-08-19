@@ -22,7 +22,6 @@ RUN mkdir -p -m 0600 /root/.ssh \
 RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/~mawj/pproc-bundle.git -v --branch opencube-benchmark --single-branch --depth 1 
 RUN --mount=type=ssh cd /home/pproc-bundle \
     && ./pproc-bundle create \
-    && sed -i '19i\#include "eckit/log/JSON.h"' /home/pproc-bundle/source/mir/src/mir/repres/gauss/Gaussian.cc \
     && ./pproc-bundle build --without-infero \
     && build/install.sh --fast 
 
@@ -52,5 +51,7 @@ RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --bran
     && python setup.py build_ext \
     && python setup.py install
 
-COPY extreme_167.grib /home/extreme_167.grib
+COPY templates /home/fdb/etc/fdb
+ENV FDB_HOME=/home/fdb
+
 
