@@ -13,6 +13,8 @@ source env/bin/activate
 BUNDLE_PATH=$(realpath build/pproc-bundle)
 export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
 
+echo $LD_LIBRARY_PATH
+
 # Run benchmark
 DATE=20231122
 CLIM_DATE=20231120
@@ -21,9 +23,9 @@ TARGET=fdb: #fileset:cascade_extreme_{param}.grib
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
-IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:697625471cffb7d8c482f1f1a704f2247dfc2ff147435018f01a766d2f72c870
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:34a6e1f59b7021d3b2e3020c038112769e5e071c8fbf2a034c60036af8eee068
 SECRET=github
-LOCAL="--local"
+LOCAL=""
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
