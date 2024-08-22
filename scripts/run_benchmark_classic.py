@@ -125,7 +125,6 @@ def main(args):
             extra_pod_config=extra_pod_config,
             extra_container_config=extra_container_config,
         )
-        print("SPEC", pod_spec)
 
         # Create the cluster, allowing it to scale
         cluster = KubeCluster(
