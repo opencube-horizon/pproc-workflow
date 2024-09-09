@@ -2,6 +2,7 @@ import sys
 import argparse
 import subprocess
 import os
+import time
 
 from cascade.cascade import Cascade
 from cascade.transformers import to_dask_graph
@@ -14,7 +15,22 @@ from dask.distributed import performance_report
 
 
 def get_kube_logs(cluster, output_dir):
-    env = {"KUBECONFIG": os.environ["KUBECONFIG"], "PATH": os.environ["PATH"]}
+    env = {
+        "HOME": os.environ["HOME"],
+        "KUBECONFIG": os.environ["KUBECONFIG"], 
+        "PATH": os.environ["PATH"]
+    }
+    subprocess.Popen(
+        [
+            "kubectl",
+            "port-forward",
+            f"{cluster.scheduler._pod.metadata.name}",
+            "8787",
+        ],
+        env=env,
+        stdout=open(f"{output_dir}/scheduler-port-forward.log", "w"),
+        stderr=subprocess.STDOUT,
+    )
     subprocess.Popen(
         [
             "stern",
@@ -118,8 +134,8 @@ def main(args):
         }
         pod_spec = make_pod_spec(
             image=config_args.image,
-            memory_limit="15G",
-            memory_request="15G",
+            memory_limit="30G",
+            memory_request="30G",
             cpu_limit=1,
             cpu_request=1,
             extra_pod_config=extra_pod_config,
@@ -134,6 +150,7 @@ def main(args):
         cluster.adapt(minimum=1, maximum=5)
         client = Client(cluster)
         get_kube_logs(cluster, config_args.output_dir)
+        time.sleep(1)
         execute_benchark(config_args, client, cluster, graph)
         client.shutdown()
 
