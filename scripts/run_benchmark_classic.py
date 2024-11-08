@@ -2,15 +2,43 @@ import sys
 import argparse
 import subprocess
 import os
+<<<<<<< Updated upstream
+=======
+import time
+import functools
+>>>>>>> Stashed changes
 
 from cascade.cascade import Cascade
 from cascade.transformers import to_dask_graph
+from cascade.graph import pyvis
 from ppcascade.parsers import get_parser
 
 import dask
 from dask.delayed import Delayed
 from dask_kubernetes.classic import KubeCluster, make_pod_spec
 from dask.distributed import performance_report
+
+
+def node_info_ext(sinks, node):
+    info = pyvis.node_info(node)
+    info["color"] = "#648FFF"
+    if not node.inputs:
+        info["shape"] = "diamond"
+        info["color"] = "#DC267F"
+    elif node in sinks:
+        info["shape"] = "triangle"
+        info["color"] = "#FFB000"
+    if node.payload is not None:
+        t = []
+        if "title" in info:
+            t.append(info["title"])
+        func, *args = node.payload
+        t.append(f"Function: {func}")
+        if args:
+            t.append("Arguments:")
+            t.extend(f"- {arg!r}" for arg in args)
+        info["title"] = "\n".join(t)
+    return info
 
 
 def get_kube_logs(cluster, output_dir):
@@ -91,6 +119,17 @@ def main(args):
     # Create graph
     graph = Cascade.graph("extreme", graph_args)
 
+    # Plot graph
+    pyvis_graph = pyvis.to_pyvis(
+            graph,
+            notebook=True,
+            cdn_resources="remote",
+            height="1500px",
+            node_attrs=functools.partial(node_info_ext, graph.sinks),
+            hierarchical_layout=False,
+        )
+    pyvis_graph.show(f"{config_args.output_dir}/plot.html")
+
     # Set up distributed client
     dask.config.set(
         {"distributed.scheduler.worker-saturation": 1.0}
@@ -109,7 +148,8 @@ def main(args):
         # Generate the spec
         extra_pod_config = {
             "volumes": [{"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}}],
-            "hostAliases": [{"ip": "10.97.3.1", "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"]}]
+            "hostAliases": [{"ip": "10.97.3.1", "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"]}],
+            "nodeSelector": {"beta.kubernetes.io/arch": "arm64"},
         }
         if config_args.image_secret != "":
             extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
