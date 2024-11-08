@@ -16,10 +16,10 @@ export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
 echo $LD_LIBRARY_PATH
 
 # Run benchmark
-DATE=20231122
+DATE=20200120
 CLIM_DATE=20231120
-SOURCE=fdb #fileset
-TARGET=fdb: #fileset:cascade_extreme_{param}.grib
+SOURCE=fdb
+TARGET=fdb: 
 LOCATION='/home/extreme_167.grib'
 CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
@@ -38,7 +38,7 @@ IMAGE=$IMAGE
 LOCAL=$LOCAL
 EOF
 
-for config in configs/*.yaml;
+for config in configs/m18*.yaml;
     do 
     echo $config
     cp $config config_temp.yaml
