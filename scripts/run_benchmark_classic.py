@@ -2,11 +2,8 @@ import sys
 import argparse
 import subprocess
 import os
-<<<<<<< Updated upstream
-=======
 import time
 import functools
->>>>>>> Stashed changes
 
 from cascade.cascade import Cascade
 from cascade.transformers import to_dask_graph
@@ -42,7 +39,22 @@ def node_info_ext(sinks, node):
 
 
 def get_kube_logs(cluster, output_dir):
-    env = {"KUBECONFIG": os.environ["KUBECONFIG"], "PATH": os.environ["PATH"]}
+    env = {
+        "HOME": os.environ["HOME"],
+        "KUBECONFIG": os.environ["KUBECONFIG"], 
+        "PATH": os.environ["PATH"]
+    }
+    subprocess.Popen(
+        [
+            "kubectl",
+            "port-forward",
+            f"{cluster.scheduler._pod.metadata.name}",
+            "8787",
+        ],
+        env=env,
+        stdout=open(f"{output_dir}/scheduler-port-forward.log", "w"),
+        stderr=subprocess.STDOUT,
+    )
     subprocess.Popen(
         [
             "stern",
@@ -154,6 +166,7 @@ def main(args):
         if config_args.image_secret != "":
             extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
         extra_container_config = {
+            "env": [{"name": "FDB_HOST", "value": os.environ["FDB_HOST"]}, {"name": "FDB_PORT", "value": os.environ["FDB_PORT"]}],
             "volumeMounts": [{"mountPath": "/tmp", "name": "cache-volume"}],
         }
         pod_spec = make_pod_spec(
@@ -174,6 +187,7 @@ def main(args):
         cluster.adapt(minimum=1, maximum=5)
         client = Client(cluster)
         get_kube_logs(cluster, config_args.output_dir)
+        time.sleep(1)
         execute_benchark(config_args, client, cluster, graph)
         client.shutdown()
 

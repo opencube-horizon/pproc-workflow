@@ -31,6 +31,8 @@ def search(function_str, text):
 def duration_in_sec(duration_str):
     if "ms" in duration_str:
         return float(duration_str.rstrip("ms")) / 1000
+    elif "us" in duration_str:
+          return float(duration_str.rstrip("us")) / 1000000
     try:
         strip_s = duration_str.rstrip("s")
         duration = float(strip_s)
