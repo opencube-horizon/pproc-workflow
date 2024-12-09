@@ -108,7 +108,8 @@ def main(args):
     else:
         # Generate the spec
         extra_pod_config = {
-            "volumes": [{"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}}]
+            "volumes": [{"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}}],
+            "hostAliases": [{"ip": "10.97.3.1", "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"]}]
         }
         if config_args.image_secret != "":
             extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
