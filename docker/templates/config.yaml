@@ -1,6 +1,6 @@
 ---
 type: remote
-host: infra1
-port: 9000
+host: %HOST%
+port: %PORT%
 engine: remote
 store: remote
