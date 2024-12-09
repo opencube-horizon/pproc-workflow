@@ -54,4 +54,5 @@ RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/mir/mir-python.git --bran
 COPY templates /home/fdb/etc/fdb
 ENV FDB_HOME=/home/fdb
 
-
+COPY configure_fdb.sh /usr/bin/configure_fdb.sh
+ENTRYPOINT ["tini", "-g", "--", "/usr/bin/configure_fdb.sh"]
