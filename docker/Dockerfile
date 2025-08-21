@@ -19,7 +19,7 @@ RUN mkdir -p -m 0600 /root/.ssh \
     && cat /root/.ssh/known_hosts
 
 # pproc-bundle
-RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/~mawj/pproc-bundle.git -v --branch opencube-benchmark --single-branch --depth 1 
+RUN --mount=type=ssh git clone ssh://git@git.ecmwf.int/~mawj/pproc-bundle.git -v --branch opencube/fam-test --single-branch --depth 1 
 RUN --mount=type=ssh cd /home/pproc-bundle \
     && ./pproc-bundle create \
     && ./pproc-bundle build --without-infero \
