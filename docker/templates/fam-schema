@@ -1,0 +1,9 @@
+[ expver, domain?
+
+       [ class, stream=oper/dcda/scda, date, time, type, levtype
+               [ step, levelist?, param ]]
+
+       [ class, stream=enfo/efov/eefo/efhs/eehs, date, time, type, levtype
+               [ step, quantile?, number?, levelist?, param ]]
+
+]

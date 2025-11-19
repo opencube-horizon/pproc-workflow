@@ -1,0 +1,11 @@
+---
+type: local
+engine: toc
+schema: %SCHEMA%
+spaces:
+- handler: Default
+  roots:
+  - path: %INDEX%
+store: fam
+fam_roots:
+- uri: %FAM_URI%

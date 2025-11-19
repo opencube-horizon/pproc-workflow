@@ -4,6 +4,7 @@ import subprocess
 import os
 import time
 import functools
+import yaml
 
 from cascade.cascade import Cascade
 from cascade.transformers import to_dask_graph
@@ -125,8 +126,13 @@ def main(args):
     )
     parser.add_argument("--output_dir", type=str, help="Directory to write outputs to")
     parser.add_argument("--local", action="store_true", default=False)
+    parser.add_argument("--fdb-options", type=str, help="Path to fdb options yaml file")
     config_args, unparsed_args = parser.parse_known_args(args)
     graph_args = get_parser("extreme").parse_args(unparsed_args)
+
+    # FDB options
+    with open(config_args.fdb_options, "r") as fdb_options_file:
+        fdb_options = yaml.safe_load(fdb_options_file)
 
     # Create graph
     graph = Cascade.graph("extreme", graph_args)
@@ -162,13 +168,59 @@ def main(args):
             "volumes": [{"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}}],
             "hostAliases": [{"ip": "10.97.3.1", "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"]}],
             "nodeSelector": {"beta.kubernetes.io/arch": "arm64"},
+            "securityContext": {"runAsUser": 10012, "runAsGroup": 20013},
         }
         if config_args.image_secret != "":
             extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
-        extra_container_config = {
-            "env": [{"name": "FDB_HOST", "value": os.environ["FDB_HOST"]}, {"name": "FDB_PORT", "value": os.environ["FDB_PORT"]}],
-            "volumeMounts": [{"mountPath": "/tmp", "name": "cache-volume"}],
-        }
+        extra_container_config = {"volumeMounts": [{"mountPath": "/tmp", "name": "cache-volume"}]}
+
+        if fdb_options["FDB_TYPE"] == "local":
+            fdb_host_index = fdb_options.pop("FDB_HOST_INDEX")
+            extra_pod_config["volumes"].extend([
+                {
+                    "name": "fdb-index",
+                    "hostPath": {
+                        "path": fdb_host_index,
+                        "type": "Directory",
+                    },
+                }, 
+                {
+                    "name": "libcxi",
+                    "hostPath": {
+                        "path": "/opt/libcxi-netns/lib/libcxi.so.1.5.0",
+                        "type": "File",
+                    },
+                },
+            ])
+
+            extra_container_config.update({
+                "env": [{"name": var, "value": val} for var, val in fdb_options.items()] + [
+                    {"name": "FI_PROVIDER", "value": "cxi"},
+                    {"name": "CXIP_SKIP_AMA_CHECK", "value": "true"},
+                    {"name": "FI_CXI_LLRING_MODE", "value": "never"},
+                ],
+                "resources": {
+                    "requests": {
+                        "memory": "15G",
+                        "smarter-devices/cxi0": "1",
+                    },
+                    "limits": {
+                        "smarter-devices/cxi0": "1",
+                    },
+                }
+                })
+            extra_container_config["volumeMounts"].extend([
+                    {
+                        "mountPath": fdb_options["FDB_INDEX"],
+                        "name": "fdb-index",
+                        "mountPropagation": None,
+                    },
+                    {
+                        "name": "libcxi",
+                        "readOnly": True,
+                        "mountPath": "/usr/lib64/libcxi.so.1",
+                    },
+                ])
         pod_spec = make_pod_spec(
             image=config_args.image,
             memory_limit="15G",

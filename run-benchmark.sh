@@ -37,23 +37,37 @@ CLIM_LOCATION=$LOCATION
 OUTPUT_DIR=bench_run
 IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:dab2b5e57f2b7f6262a5908e7277478a6c3ef4a4b8bd8c0cfae8b6672889ba56
 SECRET=github
-LOCAL=""
-if [ "$LOCAL" == "" ]; then
-   export FDB_HOST=cn03
-   export FDB_PORT=9000
-fi
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
-mkdir $OUTPUT_DIR/$NEXT_RUN_NUMBER
-cat > $OUTPUT_DIR/$NEXT_RUN_NUMBER/run_options.txt << EOF
+RUN_DIR=$OUTPUT_DIR/$NEXT_RUN_NUMBER
+mkdir -p $RUN_DIR
+
+FDB_TYPE=${1:-local}
+if [ $FDB_TYPE = "remote" ]; then
+   cat > $RUN_DIR/fdb_options.yaml << EOF
+FDB_TYPE: remote
+FDB_HOST: ${2:-"infra1"}
+FDB_PORT: ${3:-"9000"}
+EOF
+elif [ $FDB_TYPE = "local" ]; then
+   
+cat > $RUN_DIR/fdb_options.yaml << EOF
+FDB_HOST_INDEX=${2:-"/home/jwong/fdb/fam-local/database"}
+FDB_TYPE: local
+FDB_INDEX: ${3:-"/home/fdb/local/data"}
+FDB_FAM_URI: ${4:-"fam://10.115.3.1:8780/jw_region"}
+EOF 
+fi
+
+cat > $RUN_DIR/run_options.txt << EOF
 SOURCE=$SOURCE
 TARGET=$TARGET
 IMAGE=$IMAGE
 LOCAL=$LOCAL
-FDB_HOST=${FDB_HOST:-""}
-FDB_PORT=${FDB_PORT:-""}
 EOF
+
+export KUBECONFIG=/shared/WP/3/OpenFam-K8s/k3s-testcluster.kubeconf
 
 for config in configs/*.yaml;
     do 
@@ -65,12 +79,12 @@ for config in configs/*.yaml;
     sed -i -e "s#%CLIM_LOCATION%#$CLIM_LOCATION#g" config_temp.yaml
     sed -i -e "s#%TARGET%#$TARGET#g" config_temp.yaml
     CONFIG_NAME=$(basename ${config%.*})
-    RUN_OUTPUT_DIR=$OUTPUT_DIR/$NEXT_RUN_NUMBER/$CONFIG_NAME
+    RUN_OUTPUT_DIR=$RUN_DIR/$CONFIG_NAME
     echo $RUN_OUTPUT_DIR
     rm -rf $RUN_OUTPUT_DIR
     mkdir -p $RUN_OUTPUT_DIR
     cp config_temp.yaml $RUN_OUTPUT_DIR/config.yaml
-    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim | tee $RUN_OUTPUT_DIR/console.log
+    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim --fdb-options $RUN_DIR/fdb_options.yaml | tee $RUN_OUTPUT_DIR/console.log
     if [ "$LOCAL" == "" ]; then 
         for worker_log in $RUN_OUTPUT_DIR/worker*.log;
         do 
