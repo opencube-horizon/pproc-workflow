@@ -33,50 +33,26 @@ parameters:
         ens:
           - <<: *base_keys_tp
             date: "%DATE%"
-            time: 12
+            time: 1200
             stream: enfo
             type: cf
             interpolate: *base_interp_tp
           - <<: *base_keys_tp
             date: "%DATE%"
-            time: 12
+            time: 1200
             stream: enfo
             type: pf
             interpolate: *base_interp_tp
         clim:
           <<: *base_keys_tp
           date: "%CLIM_DATE%"
-          time: '00'
+          time: '0000'
           stream: efhs
           type: cd
           param: 228004
           quantile: 100
           interpolate: *base_interp_tp
           step: *clim_steps
-      fileset:
-        ens:
-          - <<: *base_keys_tp
-            date: "%DATE%"
-            time: 12
-            stream: enfo
-            type: cf
-            location: "%LOCATION%"
-          - <<: *base_keys_tp
-            date: "%DATE%"
-            time: 12
-            stream: enfo
-            type: pf
-            location: "%LOCATION%"
-        clim:
-          <<: *base_keys_tp
-          date: "%CLIM_DATE%"
-          time: '00'
-          stream: efhs
-          type: cd
-          param: 228004
-          quantile: 100
-          step: *clim_steps
-          location: "%CLIM_LOCATION%"
     eps: 1e-4
     sot:
     - 10

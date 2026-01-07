@@ -39,17 +39,19 @@ def node_info_ext(sinks, node):
     return info
 
 
-def get_kube_logs(cluster, output_dir):
+def get_kube_logs(namespace, cluster, output_dir):
     env = {
         "HOME": os.environ["HOME"],
-        "KUBECONFIG": os.environ["KUBECONFIG"], 
-        "PATH": os.environ["PATH"]
+        "KUBECONFIG": os.environ["KUBECONFIG"],
+        "PATH": os.environ["PATH"],
     }
     subprocess.Popen(
         [
             "kubectl",
             "port-forward",
             f"{cluster.scheduler._pod.metadata.name}",
+            "--namespace",
+            namespace,
             "8787",
         ],
         env=env,
@@ -60,6 +62,8 @@ def get_kube_logs(cluster, output_dir):
         [
             "stern",
             f"{cluster.scheduler._pod.metadata.name}",
+            "--namespace",
+            namespace,
         ],
         env=env,
         stdout=open(f"{output_dir}/scheduler.log", "w"),
@@ -69,7 +73,9 @@ def get_kube_logs(cluster, output_dir):
         [
             "stern",
             "dask-*",
-            "--exclude-pod", 
+            "--namespace",
+            namespace,
+            "--exclude-pod",
             f"{cluster.scheduler._pod.metadata.name}",
         ],
         env=env,
@@ -124,6 +130,10 @@ def main(args):
         help="Kubernetes secret name for pulling image",
         default="",
     )
+    parser.add_argument(
+        "--kube-namespace", type=str, help="Kubernetes namespace", default="dask"
+    )
+    parser.add_argument("--node-list", action="extend", nargs="+", type=str)
     parser.add_argument("--output_dir", type=str, help="Directory to write outputs to")
     parser.add_argument("--local", action="store_true", default=False)
     parser.add_argument("--fdb-options", type=str, help="Path to fdb options yaml file")
@@ -139,13 +149,13 @@ def main(args):
 
     # Plot graph
     pyvis_graph = pyvis.to_pyvis(
-            graph,
-            notebook=True,
-            cdn_resources="remote",
-            height="1500px",
-            node_attrs=functools.partial(node_info_ext, graph.sinks),
-            hierarchical_layout=False,
-        )
+        graph,
+        notebook=True,
+        cdn_resources="remote",
+        height="1500px",
+        node_attrs=functools.partial(node_info_ext, graph.sinks),
+        hierarchical_layout=False,
+    )
     pyvis_graph.show(f"{config_args.output_dir}/plot.html")
 
     # Set up distributed client
@@ -165,62 +175,97 @@ def main(args):
     else:
         # Generate the spec
         extra_pod_config = {
-            "volumes": [{"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}}],
-            "hostAliases": [{"ip": "10.97.3.1", "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"]}],
-            "nodeSelector": {"beta.kubernetes.io/arch": "arm64"},
-            "securityContext": {"runAsUser": 10012, "runAsGroup": 20013},
-        }
-        if config_args.image_secret != "":
-            extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
-        extra_container_config = {"volumeMounts": [{"mountPath": "/tmp", "name": "cache-volume"}]}
-
-        if fdb_options["FDB_TYPE"] == "local":
-            fdb_host_index = fdb_options.pop("FDB_HOST_INDEX")
-            extra_pod_config["volumes"].extend([
-                {
-                    "name": "fdb-index",
-                    "hostPath": {
-                        "path": fdb_host_index,
-                        "type": "Directory",
-                    },
-                }, 
+            "volumes": [
+                {"name": "cache-volume", "emptyDir": {"sizeLimit": "20G"}},
                 {
                     "name": "libcxi",
                     "hostPath": {
-                        "path": "/opt/libcxi-netns/lib/libcxi.so.1.5.0",
+                        "path": "/usr/lib64/libcxi.so.1.5.0",
                         "type": "File",
                     },
                 },
-            ])
+            ],
+            "hostAliases": [
+                {
+                    "ip": "10.97.3.1",
+                    "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"],
+                }
+            ],
+            "securityContext": {"runAsUser": 10012, "runAsGroup": 20013},
+            "affinity": {
+                "nodeAffinity": {
+                    "requiredDuringSchedulingIgnoredDuringExecution": {
+                        "nodeSelectorTerms": [
+                            {
+                                "matchExpressions": [
+                                    {
+                                        "key": "kubernetes.io/hostname",
+                                        "operator": "In",
+                                        "values": config_args.node_list,
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+        }
+        if config_args.image_secret != "":
+            extra_pod_config["imagePullSecrets"] = [{"name": config_args.image_secret}]
+        extra_container_config = {
+            "volumeMounts": [
+                {
+                    "mountPath": "/tmp",
+                    "name": "cache-volume",
+                },
+                {
+                    "name": "libcxi",
+                    "readOnly": True,
+                    "mountPath": "/usr/lib64/libcxi.so.1",
+                },
+            ],
+            "env": [
+                {"name": var, "value": str(val)} for var, val in fdb_options.items()
+            ],
+        }
 
-            extra_container_config.update({
-                "env": [{"name": var, "value": val} for var, val in fdb_options.items()] + [
+        if fdb_options["FDB_TYPE"] == "local":
+            extra_pod_config["volumes"].extend(
+                [
+                    {
+                        "name": "fdb-index",
+                        "hostPath": {
+                            "path": fdb_options["FDB_HOST_INDEX"],
+                            "type": "Directory",
+                        },
+                    },
+                ]
+            )
+            extra_container_config["env"].extend(
+                [
                     {"name": "FI_PROVIDER", "value": "cxi"},
                     {"name": "CXIP_SKIP_AMA_CHECK", "value": "true"},
                     {"name": "FI_CXI_LLRING_MODE", "value": "never"},
-                ],
-                "resources": {
-                    "requests": {
-                        "memory": "15G",
-                        "smarter-devices/cxi0": "1",
-                    },
-                    "limits": {
-                        "smarter-devices/cxi0": "1",
-                    },
-                }
-                })
-            extra_container_config["volumeMounts"].extend([
+                ]
+            )
+            extra_container_config["resources"] = {
+                "requests": {
+                    "memory": "15G",
+                    "smarter-devices/cxi0": "1",
+                },
+                "limits": {
+                    "smarter-devices/cxi0": "1",
+                },
+            }
+            extra_container_config["volumeMounts"].extend(
+                [
                     {
                         "mountPath": fdb_options["FDB_INDEX"],
                         "name": "fdb-index",
                         "mountPropagation": None,
                     },
-                    {
-                        "name": "libcxi",
-                        "readOnly": True,
-                        "mountPath": "/usr/lib64/libcxi.so.1",
-                    },
-                ])
+                ]
+            )
         pod_spec = make_pod_spec(
             image=config_args.image,
             memory_limit="15G",
@@ -234,11 +279,13 @@ def main(args):
         # Create the cluster, allowing it to scale
         cluster = KubeCluster(
             pod_spec,
+            namespace=config_args.kube_namespace,
             env={"DASK_LOGGING__DISTRIBUTED": "debug", "PYTHONUNBUFFERED": "1"},
+            apply_default_affinity="none",
         )
         cluster.adapt(minimum=1, maximum=5)
         client = Client(cluster)
-        get_kube_logs(cluster, config_args.output_dir)
+        get_kube_logs(config_args.kube_namespace, cluster, config_args.output_dir)
         time.sleep(1)
         execute_benchark(config_args, client, cluster, graph)
         client.shutdown()

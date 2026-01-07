@@ -32,7 +32,7 @@ def duration_in_sec(duration_str):
     if "ms" in duration_str:
         return float(duration_str.rstrip("ms")) / 1000
     elif "us" in duration_str:
-          return float(duration_str.rstrip("us")) / 1000000
+        return float(duration_str.rstrip("us")) / 1000000
     try:
         strip_s = duration_str.rstrip("s")
         duration = float(strip_s)
@@ -111,7 +111,9 @@ def parse_console_log(output_dir):
     mean_read = np.mean(read)
     mean_write = np.mean(write)
     print("\nConsole Log")
-    print(f"    Function read, occurrences {len(read)}, average rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)")
+    print(
+        f"    Function read, occurrences {len(read)}, average rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)"
+    )
     print(
         f"    Function write, occurrences {len(write)}, average rate {mean_write:.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"
     )
