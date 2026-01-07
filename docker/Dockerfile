@@ -7,7 +7,8 @@ ENV MIR_INCLUDE_DIRS=/usr/local/include
 ENV MIR_LIB_DIR=/usr/local/lib64
 COPY meteokit /tmp/build/meteokit
 
-RUN pip install \
+RUN source /home/env/bin/activate \ 
+    && python -m pip install \
     cython==3.0.8 \
     eccodes==1.6.1 \
     earthkit-data==0.4.0 \
@@ -18,6 +19,7 @@ RUN pip install \
     scipy==1.11.4 \
     array_api_compat==1.4 \
     pyvis==0.3.2 \
+    bokeh==3.3.3 \
     /tmp/build/meteokit \
     git+https://github.com/ecmwf/pyfdb.git@0.0.3 \
     git+https://github.com/ecmwf/pproc.git@1.1.0 \
@@ -27,6 +29,7 @@ RUN pip install \
 
 RUN git clone https://github.com/ecmwf/mir-python.git --branch 0.2.0 --single-branch --depth 1 \
     && cd mir-python \
+    && source /home/env/bin/activate \
     && python setup.py build_ext \
     && python setup.py install
 

@@ -25,4 +25,5 @@ fi
 cat ${FDB_HOME}/etc/fdb/config.yaml
 
 # Run extra commands
+source /home/env/bin/activate
 exec "$@"
