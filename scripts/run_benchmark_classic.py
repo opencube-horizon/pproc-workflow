@@ -279,11 +279,12 @@ def main(args):
         # Create the cluster, allowing it to scale
         cluster = KubeCluster(
             pod_spec,
+            n_workers=5,
             namespace=config_args.kube_namespace,
             env={"DASK_LOGGING__DISTRIBUTED": "debug", "PYTHONUNBUFFERED": "1"},
             apply_default_affinity="none",
         )
-        cluster.adapt(minimum=1, maximum=5)
+        #cluster.adapt(minimum=1, maximum=5)
         client = Client(cluster)
         get_kube_logs(config_args.kube_namespace, cluster, config_args.output_dir)
         time.sleep(1)

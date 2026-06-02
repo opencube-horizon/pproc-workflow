@@ -84,14 +84,16 @@ Performance Report
         function_occurrences = np.array(
             [re.search(f"^{function}", x) is not None for x in key_items[name_index][1]]
         )
-        avg_function_time = np.mean(
-            np.asarray(list(map(duration_in_sec, key_items[duration_index][1])))[
-                function_occurrences
-            ]
-        )
+        in_secs = np.asarray(list(map(duration_in_sec, key_items[duration_index][1])))[
+            function_occurrences
+        ]
+        avg_function_time = np.mean(in_secs)
+        std_function_time = np.std(in_secs)
         print(
-            f"Function {function}, occurrences {np.sum(function_occurrences)}, average {avg_function_time:.3f}s."
+            f"Function {function}, occurrences {np.sum(function_occurrences)}, average {avg_function_time:.3f}s, stdev {std_function_time:.3f}s."
         )
+        if function in ["transfer", "efi", "sot"]:
+            np.savetxt(f"{output_dir}/{function}.txt", in_secs)
 
 
 def parse_console_log(output_dir):
@@ -109,13 +111,17 @@ def parse_console_log(output_dir):
                 write.append(log_bytes / log_time)
 
     mean_read = np.mean(read)
+    std_read = np.std(read)
     mean_write = np.mean(write)
+    std_write = np.std(write)
+    np.savetxt(f"{output_dir}/read_rate.txt", np.asarray(read)/10**6)
+    np.savetxt(f"{output_dir}/write_rate.txt", np.asarray(write)/10**6)
     print("\nConsole Log")
     print(
-        f"    Function read, occurrences {len(read)}, average rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s)"
+        f"    Function read, occurrences {len(read)}, average rate {mean_read:.3f} bytes/s ({mean_read/10**6:.3f} MB/s), stdev rate {std_read:.3f} bytes/s ({std_read/10**6:.3f} MB/s)"
     )
     print(
-        f"    Function write, occurrences {len(write)}, average rate {mean_write:.3f} bytes/s ({mean_write/10**6:.3f} MB/s)"
+        f"    Function write, occurrences {len(write)}, average rate {mean_write:.3f} bytes/s ({mean_write/10**6:.3f} MB/s), stdev rate {std_write:.3f} bytes/s ({std_write/10**6:.3f} MB/s)"
     )
 
 

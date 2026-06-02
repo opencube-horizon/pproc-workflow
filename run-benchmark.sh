@@ -19,14 +19,14 @@ export LD_LIBRARY_PATH=$BUNDLE_PATH/install/lib64:$LD_LIBRARY_PATH
 echo $LD_LIBRARY_PATH
 
 # Run benchmark
-DATE=20231122
-CLIM_DATE=20231120
+DATE=20260107
+CLIM_DATE=20260105
 SOURCE=fdb
 TARGET=fdb:
 OUTPUT_DIR=bench_run
 IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:620659c139364fcddce10160c690c6123b0f71f9ca3ba1bcc6815dc2d7466f4f
 SECRET=git-dask
-NODES="cn01 cn02 cn03"
+NODES="cn05 cn06 cn07"
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
@@ -59,7 +59,7 @@ EOF
 
 export KUBECONFIG=$(realpath /home/jwong/.kube/config)
 
-for config in configs/*.yaml;
+for config in configs/extreme_2t.yaml;
     do 
     echo $config
     cp $config config_temp.yaml
