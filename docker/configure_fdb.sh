@@ -12,10 +12,8 @@ if [ "$TYPE" = "remote" ]; then
     sed -i "s/%PORT%/$PORT/g" ${FDB_HOME}/etc/fdb/config.yaml
 elif [ "$TYPE" = "local" ]; then 
     export FDB_HOME=/home/benchmark/fdb/local
-    INDEX=${FDB_INDEX}
     FAM_URI=${FDB_FAM_URI}
-    echo "ARGS:" $TYPE $INDEX $FAM_URI
-    sed -i "s;%INDEX%;$INDEX;g" ${FDB_HOME}/etc/fdb/config.yaml
+    echo "ARGS:" $TYPE $FAM_URI
     sed -i "s;%FAM_URI%;${FAM_URI};g" ${FDB_HOME}/etc/fdb/config.yaml
 else
     echo "Unknown FDB type $TYPE"

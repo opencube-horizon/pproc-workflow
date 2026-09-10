@@ -1,11 +1,8 @@
 ---
 type: local
-engine: toc
+engine: fam
 schema: %SCHEMA%
-spaces:
-- handler: Default
-  roots:
-  - path: %INDEX%
+catalogue: fam
 store: fam
 fam_roots:
 - uri: %FAM_URI%

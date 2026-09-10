@@ -24,9 +24,10 @@ CLIM_DATE=20260105
 SOURCE=fdb
 TARGET=fdb:
 OUTPUT_DIR=bench_run
-IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:620659c139364fcddce10160c690c6123b0f71f9ca3ba1bcc6815dc2d7466f4f
-SECRET=git-dask
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:014330191acb3f67b0e38ce8f097d8b8f013e380284da45655c7f8a3f3bf909c
+SECRET=pproc-secret
 NODES="cn05 cn06 cn07"
+NAMESPACE=openfam
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
@@ -42,10 +43,8 @@ FDB_PORT: ${3:-"9000"}
 EOF
 elif [ $FDB_TYPE = "local" ]; then
   cat > $RUN_DIR/fdb_options.yaml << EOF
-FDB_HOST_INDEX: ${2:-"/shared/scratch/ECMWF/D5.2/fam/database"}
 FDB_TYPE: local
-FDB_INDEX: ${3:-"/home/fdb/local/data"}
-FDB_FAM_URI: ${4:-"fam://10.115.3.2:8080/jw_data_region"}
+FDB_FAM_URI: ${2:-"fam://10.42.4.208:8080/pproc_test_region"}
 EOF
 fi
 
@@ -72,7 +71,7 @@ for config in configs/extreme_2t.yaml;
     rm -rf $RUN_OUTPUT_DIR
     mkdir -p $RUN_OUTPUT_DIR
     cp config_temp.yaml $RUN_OUTPUT_DIR/config.yaml
-    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --node-list $NODES --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim --fdb-options $RUN_DIR/fdb_options.yaml | tee $RUN_OUTPUT_DIR/console.log
+    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --kube-namespace $NAMESPACE --node-list $NODES --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim --fdb-options $RUN_DIR/fdb_options.yaml | tee $RUN_OUTPUT_DIR/console.log
     if [ "$LOCAL" == "" ]; then 
         for worker_log in $RUN_OUTPUT_DIR/worker*.log;
         do 

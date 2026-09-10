@@ -166,7 +166,7 @@ def main(args):
 
     if config_args.local:
         with Client(
-            memory_limit="15G",
+            memory_limit="10G",
             processes=True,
             n_workers=2,
             threads_per_worker=1,
@@ -180,9 +180,25 @@ def main(args):
                 {
                     "name": "libcxi",
                     "hostPath": {
-                        "path": "/usr/lib64/libcxi.so.1.5.0",
+                        "path": "/usr/lib64/libcxi.so.1",
                         "type": "File",
                     },
+                },
+                {
+                    "name": "cis", 
+                    "configMap": {"name": "openfam-cis"}, 
+                }, 
+                {
+                    "name": "meta", 
+                    "configMap": {"name": "openfam-meta"}, 
+                }, 
+                {
+                    "name": "mem", 
+                    "configMap": {"name": "openfam-mem"},
+                }, 
+                {
+                    "name": "pe", 
+                    "configMap": {"name": "openfam-pe"},
                 },
             ],
             "hostAliases": [
@@ -191,7 +207,6 @@ def main(args):
                     "hostnames": ["infra1", "infra1.can.pt.horizon-opencube.eu"],
                 }
             ],
-            "securityContext": {"runAsUser": 10012, "runAsGroup": 20013},
             "affinity": {
                 "nodeAffinity": {
                     "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -223,6 +238,26 @@ def main(args):
                     "readOnly": True,
                     "mountPath": "/usr/lib64/libcxi.so.1",
                 },
+                {
+                    "name": "cis", 
+                    "mountPath": "/usr/local/config/fam_client_interface_config.yaml",
+                    "subPath": "fam_client_interface_config.yaml",
+                }, 
+                {
+                    "name": "meta", 
+                    "mountPath": "/usr/local/config/fam_metadata_config.yaml",
+                    "subPath": "fam_metadata_config.yaml",
+                }, 
+                {
+                    "name": "mem", 
+                    "mountPath": "/usr/local/config/fam_memoryserver_config.yaml",
+                    "subPath":  "fam_memoryserver_config.yaml", 
+                }, 
+                {
+                    "name": "pe", 
+                    "mountPath": "/usr/local/config/fam_pe_config.yaml", 
+                    "subPath": "fam_pe_config.yaml", 
+                },
             ],
             "env": [
                 {"name": var, "value": str(val)} for var, val in fdb_options.items()
@@ -230,42 +265,24 @@ def main(args):
         }
 
         if fdb_options["FDB_TYPE"] == "local":
-            extra_pod_config["volumes"].extend(
-                [
-                    {
-                        "name": "fdb-index",
-                        "hostPath": {
-                            "path": fdb_options["FDB_HOST_INDEX"],
-                            "type": "Directory",
-                        },
-                    },
-                ]
-            )
             extra_container_config["env"].extend(
                 [
                     {"name": "FI_PROVIDER", "value": "cxi"},
                     {"name": "CXIP_SKIP_AMA_CHECK", "value": "true"},
                     {"name": "FI_CXI_LLRING_MODE", "value": "never"},
+                    {"name": "OPENFAM_INSTALL_DIR", "values": "/usr/local/"},
+                    {"name": "OPENFAM_ROOT", "value": "/usr/local"},
                 ]
             )
             extra_container_config["resources"] = {
                 "requests": {
-                    "memory": "15G",
+                    "memory": "10G",
                     "smarter-devices/cxi0": "1",
                 },
                 "limits": {
                     "smarter-devices/cxi0": "1",
                 },
             }
-            extra_container_config["volumeMounts"].extend(
-                [
-                    {
-                        "mountPath": fdb_options["FDB_INDEX"],
-                        "name": "fdb-index",
-                        "mountPropagation": None,
-                    },
-                ]
-            )
         pod_spec = make_pod_spec(
             image=config_args.image,
             memory_limit="10G",
