@@ -15,7 +15,7 @@ import dask
 from dask.delayed import Delayed
 from dask_kubernetes.classic import KubeCluster, make_pod_spec
 from dask.distributed import performance_report
-
+from distributed.utils import get_ip_interface
 
 def node_info_ext(sinks, node):
     info = pyvis.node_info(node)
@@ -268,8 +268,8 @@ def main(args):
             )
         pod_spec = make_pod_spec(
             image=config_args.image,
-            memory_limit="15G",
-            memory_request="15G",
+            memory_limit="10G",
+            memory_request="10G",
             cpu_limit=1,
             cpu_request=1,
             extra_pod_config=extra_pod_config,
@@ -281,10 +281,13 @@ def main(args):
             pod_spec,
             n_workers=5,
             namespace=config_args.kube_namespace,
+            interface=get_ip_interface('hsn0'),
             env={"DASK_LOGGING__DISTRIBUTED": "debug", "PYTHONUNBUFFERED": "1"},
             apply_default_affinity="none",
         )
         #cluster.adapt(minimum=1, maximum=5)
+        print("DEPLOY MODE", cluster._deploy_mode)
+        print("INTERFACE", cluster._interface)
         client = Client(cluster)
         get_kube_logs(config_args.kube_namespace, cluster, config_args.output_dir)
         time.sleep(1)
