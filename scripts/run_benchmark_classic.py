@@ -186,19 +186,19 @@ def main(args):
                 },
                 {
                     "name": "cis", 
-                    "configMap": {"name": "openfam-cis"}, 
+                    "configMap": {"name": f"{config_args.kube_namespace}-cis"}, 
                 }, 
                 {
                     "name": "meta", 
-                    "configMap": {"name": "openfam-meta"}, 
+                    "configMap": {"name": f"{config_args.kube_namespace}-meta"}, 
                 }, 
                 {
                     "name": "mem", 
-                    "configMap": {"name": "openfam-mem"},
+                    "configMap": {"name": f"{config_args.kube_namespace}-mem"},
                 }, 
                 {
                     "name": "pe", 
-                    "configMap": {"name": "openfam-pe"},
+                    "configMap": {"name": f"{config_args.kube_namespace}-pe"},
                 },
             ],
             "hostAliases": [
