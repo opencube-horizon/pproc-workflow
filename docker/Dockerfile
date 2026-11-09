@@ -1,4 +1,4 @@
-FROM ghcr.io/opencube-horizon/pproc-dask:fdb-fam
+FROM ghcr.io/opencube-horizon/pproc-dask:fdb-fam-dev
 
 WORKDIR /tmp/build
 

@@ -24,10 +24,10 @@ CLIM_DATE=20260105
 SOURCE=fdb
 TARGET=fdb:
 OUTPUT_DIR=bench_run
-IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:014330191acb3f67b0e38ce8f097d8b8f013e380284da45655c7f8a3f3bf909c
+IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:2e245b83dcf0591fd61c97373dcac032641b9f2cf24e2847f69aabb9a33597d5
 SECRET=pproc-secret
 NODES="cn05 cn06 cn07"
-NAMESPACE=openfam
+NAMESPACE=openfam-dev
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
@@ -44,7 +44,7 @@ EOF
 elif [ $FDB_TYPE = "local" ]; then
   cat > $RUN_DIR/fdb_options.yaml << EOF
 FDB_TYPE: local
-FDB_FAM_URI: ${2:-"fam://10.42.4.208:8080/pproc_test_region"}
+FDB_FAM_URI: ${2:-"fam://10.42.4.73:8080/ecmwf_data_region_pproc"}
 EOF
 fi
 
