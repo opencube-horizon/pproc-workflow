@@ -28,6 +28,7 @@ IMAGE=ghcr.io/opencube-horizon/pproc-benchmark@sha256:014330191acb3f67b0e38ce8f0
 SECRET=pproc-secret
 NODES="cn05 cn06 cn07"
 NAMESPACE=openfam
+RETRIES=1
 
 LATEST_RUN_NUMBER=$(ls $OUTPUT_DIR | tail -1)
 NEXT_RUN_NUMBER=$(printf "%06d" "$(expr $LATEST_RUN_NUMBER + 1)")
@@ -54,6 +55,8 @@ TARGET=$TARGET
 IMAGE=$IMAGE
 LOCAL=$LOCAL
 NODES=$NODES
+NAMESPACE=$NAMESPACE
+RETRIES=$RETRIES
 EOF
 
 export KUBECONFIG=$(realpath /home/jwong/.kube/config)
@@ -71,7 +74,7 @@ for config in configs/extreme_2t.yaml;
     rm -rf $RUN_OUTPUT_DIR
     mkdir -p $RUN_OUTPUT_DIR
     cp config_temp.yaml $RUN_OUTPUT_DIR/config.yaml
-    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --kube-namespace $NAMESPACE --node-list $NODES --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim --fdb-options $RUN_DIR/fdb_options.yaml | tee $RUN_OUTPUT_DIR/console.log
+    DASK_LOGGING__DISTRIBUTED=debug python scripts/run_benchmark_classic.py $LOCAL --image $IMAGE --image_secret $SECRET --kube-namespace $NAMESPACE --node-list $NODES --output_dir $RUN_OUTPUT_DIR --config config_temp.yaml --ensemble $SOURCE:ens --climatology $SOURCE:clim --read-retries $RETRIES --fdb-options $RUN_DIR/fdb_options.yaml | tee $RUN_OUTPUT_DIR/console.log
     if [ "$LOCAL" == "" ]; then 
         for worker_log in $RUN_OUTPUT_DIR/worker*.log;
         do 
